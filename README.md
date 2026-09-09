@@ -1,6 +1,6 @@
 # cloudflare-ddns-updater
 
-A no-compromise boilerplate for projects willing to be on the cutting edge of ECMAScript and Node.
+A simple dynamic DNS updater for Cloudflare. It updates a DNS record with your current public IP address.
 
 ## Commands
 
@@ -12,36 +12,42 @@ Install all dependencies.
 bun install
 ```
 
-Run your application.
+Populate your `.env` file with the required environment variables. They are validated and embedded into the executable during compilation.
 
 ```bash
-bun dev
+{
+  echo CF_API_TOKEN=$CF_API_TOKEN
+  echo CF_ZONE_ID=$CF_ZONE_ID
+  echo CF_RECORD_NAME=$CF_RECORD_NAME
+} > .env
 ```
 
-### Build
-
-Minify and bundle the Node application with [esbuild](https://esbuild.github.io/).
+Compile the Bun application into a standalone executable and generate its systemd service.
 
 ```bash
-bun run build
+bun run compile
 ```
 
-Human-readable bundle of your Node application. For debugging purposes.
+## systemd
+
+Enable and start the linked service:
 
 ```bash
-bun run build -t
+sudo systemctl link --force "$PWD/dist/cloudflare-ddns-updater.service"
+sudo systemctl daemon-reload
+sudo systemctl enable --now cloudflare-ddns-updater
 ```
 
-### Test
-
-Run your tests with hot reloading.
+After making changes, recompile and restart the service:
 
 ```bash
-bun run test
+bun run compile
+sudo systemctl restart cloudflare-ddns-updater
 ```
 
-Run your tests without hot reloading. For testing in a CI pipeline.
+Disable and remove it with:
 
 ```bash
-bun test
+sudo systemctl disable --now cloudflare-ddns-updater
+sudo systemctl daemon-reload
 ```
