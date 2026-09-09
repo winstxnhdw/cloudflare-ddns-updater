@@ -1,0 +1,15 @@
+name: Build
+
+on:
+  push:
+    paths:
+      - .github/workflows/main.yml
+      - biome.json
+      - tsconfig.json
+      - package.json
+      - bun.lockb
+      - '**.ts'
+
+jobs:
+  build:
+    uses: winstxnhdw/actions/.github/workflows/bun.yml@f43de6b5804c7609cb6f13864e2d18a70301469e # main
