@@ -8,7 +8,7 @@ A simple dynamic DNS updater for Cloudflare. It updates a DNS record with your c
 
 ## Usage
 
-Download the installer from the [releases](https://github.com/winstxnhdw/cloudflare-ddns-updater/releases/tag/latest) page and execute it. It will ask for your Cloudflare API token, zone ID, DNS record name, and cron schedule, then generate the `cloudflare-ddns-updater` executable and its `systemd` service in the current directory. The API token is hidden while you enter it, and all answers are inlined into the generated executable.
+Download the installer from the [releases](https://github.com/winstxnhdw/cloudflare-ddns-updater/releases/tag/latest) page and execute it. It will ask for your `Cloudflare API token`, `zone ID`, and `DNS record name`, then generate the `cloudflare-ddns-updater` executable and its `systemd` service in the current directory.
 
 ```bash
 ./cloudflare-ddns-updater-installer
