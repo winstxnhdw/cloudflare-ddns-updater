@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release.yml]
+  workflow_run:
+    workflows: [Build]
+    branches: main
+    types: completed
+
+permissions: {}
+
+jobs:
+  compile:
+    runs-on: ubuntu-slim
+    strategy:
+      matrix:
+        target:
+          - linux-x64
+          - linux-arm64
+          - windows-x64
+          - darwin-x64
+          - darwin-arm64
+          - linux-x64-musl
+          - linux-arm64-musl
+    env:
+      BINARY_NAME: cloudflare-ddns-updater-installer
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          show-progress: false
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install node dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Compile
+        run: bun compile --target bun-${{ matrix.target }} --outfile dist/${{ env.BINARY_NAME }}-${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: build-${{ matrix.target }}
+          path: dist/${{ env.BINARY_NAME }}-${{ matrix.target }}*
+          retention-days: 1
+
+  release:
+    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+    needs: compile
+    uses: winstxnhdw/actions/.github/workflows/release.yml@main
+    with:
+      release-tag: latest
+      release-title: Installer
+      release-asset: dist/*
+      artifact-name: build-*
+      artifact-path: dist/
+    permissions:
+      contents: write

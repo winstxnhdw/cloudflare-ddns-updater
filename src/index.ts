@@ -24,15 +24,15 @@ class IPAddressError extends Data.TaggedError('IPAddressError')<{
 }> {}
 
 const main = Effect.gen(function* () {
-  const cloudflare = new Cloudflare({ apiToken: process.env.CF_API_TOKEN }).dns.records;
+  const cloudflare = new Cloudflare({ apiToken: Bun.env.CF_API_TOKEN }).dns.records;
 
   const records = yield* Effect.tryPromise({
     catch: (cause) => new CloudflareRecordListError({ cause }),
     try: () =>
       cloudflare.list({
-        zone_id: process.env.CF_ZONE_ID,
+        zone_id: Bun.env.CF_ZONE_ID,
         type: 'A',
-        name: { exact: process.env.CF_RECORD_NAME },
+        name: { exact: Bun.env.CF_RECORD_NAME },
       }),
   });
 
@@ -46,9 +46,9 @@ const main = Effect.gen(function* () {
     catch: (cause) => new CloudflareRecordEditError({ cause }),
     try: () =>
       cloudflare.edit(records.result[0]?.id ?? '', {
-        zone_id: process.env.CF_ZONE_ID,
+        zone_id: Bun.env.CF_ZONE_ID,
         type: 'A',
-        name: process.env.CF_RECORD_NAME,
+        name: Bun.env.CF_RECORD_NAME,
         content: ip,
         ttl: 1,
         proxied: false,
@@ -59,4 +59,4 @@ const main = Effect.gen(function* () {
 const run = () => Effect.runPromise(main.pipe(Effect.provide(FetchHttpClient.layer)));
 
 await run();
-Bun.cron(process.env.CF_CRON, run);
+Bun.cron(Bun.env.CF_CRON, run);

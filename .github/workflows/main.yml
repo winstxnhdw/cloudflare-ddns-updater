@@ -10,8 +10,15 @@ on:
       - bun.lockb
       - "**.ts"
 
+env:
+  CF_CRON: "0 * * * *"
+  CF_API_TOKEN: "token"
+  CF_ZONE_ID: "zone_id"
+  CF_RECORD_NAME: "record_name"
+
 jobs:
   build:
     uses: winstxnhdw/actions/.github/workflows/bun.yml@main
     with:
+      disable-build: true
       disable-test: true

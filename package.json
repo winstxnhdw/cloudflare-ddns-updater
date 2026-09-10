@@ -2,8 +2,7 @@
   "scripts": {
     "lint": "biome check .",
     "dev": "bun src/index.ts",
-    "build": "bun scripts/build.ts",
-    "test": "bun test --watch"
+    "compile": "bun scripts/compile.ts"
   },
   "dependencies": {
     "@effect/platform": "^0.97.2",
@@ -13,6 +12,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
+    "@effect/cli": "^0.77.1",
     "@effect/platform-bun": "^0.91.2",
     "@types/bun": "latest"
   },

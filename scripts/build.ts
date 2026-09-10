@@ -1,17 +1,16 @@
 import { userInfo } from 'node:os';
+import { Prompt } from '@effect/cli';
 import { FileSystem, Path } from '@effect/platform';
 import { BunContext, BunRuntime } from '@effect/platform-bun';
-import { Data, Effect, Schema } from 'effect';
+import { Data, Effect, Predicate, Redacted, Schema } from 'effect';
+
+declare const APPLICATION_SOURCE: string;
 
 class ExecutableBuildError extends Data.TaggedError('ExecutableBuildError')<{
   readonly cause: unknown;
 }> {}
 
 class ExecutablePermissionError extends Data.TaggedError('ExecutablePermissionError')<{
-  readonly cause: unknown;
-}> {}
-
-class CronScheduleValidationError extends Data.TaggedError('CronScheduleValidationError')<{
   readonly cause: unknown;
 }> {}
 
@@ -78,43 +77,47 @@ const serviceContents = (executablePath: string) =>
     return contents.join('\n');
   });
 
+const required = (value: string) =>
+  Schema.decodeUnknown(Schema.NonEmptyString)(value).pipe(Effect.mapError(() => 'A value is required'));
+
+const cron = (value: string) =>
+  Effect.try({ try: () => Bun.cron.parse(value), catch: () => 'Invalid cron schedule' }).pipe(
+    Effect.filterOrFail(Predicate.isNotNull, () => 'Schedule has no future occurrences'),
+    Effect.as(value),
+  );
+
 const build = Effect.gen(function* () {
   const fileSystem = yield* FileSystem.FileSystem;
-  const executablePath = 'dist/cloudflare-ddns-updater';
+  const applicationEntrypoint = 'src/index.ts';
+  const executablePath = 'cloudflare-ddns-updater';
 
-  const envSchema = Schema.Struct({
-    CF_API_TOKEN: Schema.NonEmptyString,
-    CF_CRON: Schema.NonEmptyString,
-    CF_ZONE_ID: Schema.NonEmptyString,
-    CF_RECORD_NAME: Schema.NonEmptyString,
+  const input = yield* Prompt.all({
+    apiToken: Prompt.password({ message: 'Cloudflare API token', validate: required }),
+    zoneId: Prompt.text({ message: 'Cloudflare zone ID', validate: required }),
+    recordName: Prompt.text({ message: 'DNS record name', validate: required }),
+    cron: Prompt.text({ message: 'Cron schedule', default: '0 * * * *', validate: cron }),
   });
 
-  const env = yield* Schema.decodeUnknown(envSchema, { errors: 'all' })({
-    CF_API_TOKEN: process.env.CF_API_TOKEN,
-    CF_CRON: process.env.CF_CRON,
-    CF_ZONE_ID: process.env.CF_ZONE_ID,
-    CF_RECORD_NAME: process.env.CF_RECORD_NAME,
-  });
-
-  yield* Effect.try({
-    catch: (cause) => new CronScheduleValidationError({ cause }),
-    try: () => {
-      if (Bun.cron.parse(env.CF_CRON) === null) throw new Error('Cron schedule has no future occurrences');
-    },
+  const define = yield* Effect.try({
+    catch: (cause) => new ExecutableBuildError({ cause }),
+    try: () => ({
+      'Bun.env.CF_API_TOKEN': JSON.stringify(Redacted.value(input.apiToken)),
+      'Bun.env.CF_CRON': JSON.stringify(input.cron),
+      'Bun.env.CF_ZONE_ID': JSON.stringify(input.zoneId),
+      'Bun.env.CF_RECORD_NAME': JSON.stringify(input.recordName),
+    }),
   });
 
   yield* Effect.tryPromise({
     catch: (cause) => new ExecutableBuildError({ cause }),
     try: () =>
       Bun.build({
-        entrypoints: ['src/index.ts'],
-        env: 'CF_*',
+        define,
+        entrypoints: [applicationEntrypoint],
+        files: { [applicationEntrypoint]: APPLICATION_SOURCE },
         minify: true,
         sourcemap: 'linked',
-        compile: {
-          autoloadDotenv: false,
-          outfile: executablePath,
-        },
+        compile: { outfile: executablePath },
       }),
   });
 

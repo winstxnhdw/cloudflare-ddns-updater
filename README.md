@@ -1,54 +1,44 @@
 # cloudflare-ddns-updater
 
+[![main.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/main.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/main.yml)
+[![release.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/release.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/release.yml)
+[![format.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/format.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/format.yml)
+
 A simple dynamic DNS updater for Cloudflare. It updates a DNS record with your current public IP address.
 
-## Commands
+## Usage
 
-### Setup
+Download the installer from the [releases](https://github.com/winstxnhdw/cloudflare-ddns-updater/releases/tag/latest) page and execute it. It will ask for your Cloudflare API token, zone ID, DNS record name, and cron schedule, then generate the `cloudflare-ddns-updater` executable and its `systemd` service in the current directory. The API token is hidden while you enter it, and all answers are inlined into the generated executable.
 
-Install all dependencies.
+```bash
+./cloudflare-ddns-updater-installer
+```
+
+Link the `systemd` service and enable it.
+
+```bash
+sudo systemctl link "$PWD/cloudflare-ddns-updater.service"
+sudo systemctl enable --now cloudflare-ddns-updater
+```
+
+To uninstall, simply disable the service.
+
+```bash
+sudo systemctl disable --now cloudflare-ddns-updater
+```
+
+## Development
+
+Before beginning any development, ensure all dependenc(ies) are installed.
 
 ```bash
 bun install
 ```
 
-Populate your `.env` file with the required environment variables. They are validated and embedded into the executable during the build.
+### Installer
+
+Build the standalone installer with the following.
 
 ```bash
-{
-  echo CF_CRON="0 * * * *"
-  echo CF_API_TOKEN="$CF_API_TOKEN"
-  echo CF_ZONE_ID="$CF_ZONE_ID"
-  echo CF_RECORD_NAME="$CF_RECORD_NAME"
-} > .env
-```
-
-Build the Bun application as a standalone executable and generate its systemd service.
-
-```bash
-bun run build
-```
-
-## systemd
-
-Enable and start the linked service:
-
-```bash
-sudo systemctl link --force "$PWD/dist/cloudflare-ddns-updater.service"
-sudo systemctl daemon-reload
-sudo systemctl enable --now cloudflare-ddns-updater
-```
-
-After making changes, rebuild and restart the service:
-
-```bash
-bun run build
-sudo systemctl restart cloudflare-ddns-updater
-```
-
-Disable and remove it with:
-
-```bash
-sudo systemctl disable --now cloudflare-ddns-updater
-sudo systemctl daemon-reload
+bun run compile
 ```
