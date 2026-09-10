@@ -12,8 +12,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
-    "@effect/cli": "^0.77.1",
-    "@effect/platform-bun": "^0.91.2",
+    "@effect/cli": "0.77.1",
+    "@effect/platform-bun": "0.91.2",
     "@types/bun": "latest"
   },
   "peerDependencies": {
