@@ -12,20 +12,21 @@ Install all dependencies.
 bun install
 ```
 
-Populate your `.env` file with the required environment variables. They are validated and embedded into the executable during compilation.
+Populate your `.env` file with the required environment variables. They are validated and embedded into the executable during the build.
 
 ```bash
 {
-  echo CF_API_TOKEN=$CF_API_TOKEN
-  echo CF_ZONE_ID=$CF_ZONE_ID
-  echo CF_RECORD_NAME=$CF_RECORD_NAME
+  echo CF_CRON="0 * * * *"
+  echo CF_API_TOKEN="$CF_API_TOKEN"
+  echo CF_ZONE_ID="$CF_ZONE_ID"
+  echo CF_RECORD_NAME="$CF_RECORD_NAME"
 } > .env
 ```
 
-Compile the Bun application into a standalone executable and generate its systemd service.
+Build the Bun application as a standalone executable and generate its systemd service.
 
 ```bash
-bun run compile
+bun run build
 ```
 
 ## systemd
@@ -38,10 +39,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now cloudflare-ddns-updater
 ```
 
-After making changes, recompile and restart the service:
+After making changes, rebuild and restart the service:
 
 ```bash
-bun run compile
+bun run build
 sudo systemctl restart cloudflare-ddns-updater
 ```
 

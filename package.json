@@ -2,7 +2,7 @@
   "scripts": {
     "lint": "biome check .",
     "dev": "bun src/index.ts",
-    "compile": "bun scripts/build.ts",
+    "build": "bun scripts/build.ts",
     "test": "bun test --watch"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
+    "@effect/platform-bun": "^0.91.2",
     "@types/bun": "latest"
   },
   "peerDependencies": {

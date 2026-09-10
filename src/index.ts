@@ -1,19 +1,21 @@
 import { FetchHttpClient, HttpClient, HttpClientResponse } from '@effect/platform';
 import Cloudflare from 'cloudflare';
-import { Data, Effect, Schema } from 'effect';
+import { Data, Effect } from 'effect';
 
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      readonly CF_API_TOKEN?: string;
-      readonly CF_ZONE_ID?: string;
-      readonly CF_RECORD_NAME?: string;
-    }
+declare module 'bun' {
+  interface Env {
+    readonly CF_API_TOKEN: string;
+    readonly CF_CRON: string;
+    readonly CF_RECORD_NAME: string;
+    readonly CF_ZONE_ID: string;
   }
 }
 
-class CloudflareAPIError extends Data.TaggedError('CloudflareAPIError')<{
-  readonly operation: 'listRecords' | 'editRecord';
+class CloudflareRecordListError extends Data.TaggedError('CloudflareRecordListError')<{
+  readonly cause: unknown;
+}> {}
+
+class CloudflareRecordEditError extends Data.TaggedError('CloudflareRecordEditError')<{
   readonly cause: unknown;
 }> {}
 
@@ -21,29 +23,16 @@ class IPAddressError extends Data.TaggedError('IPAddressError')<{
   readonly cause: unknown;
 }> {}
 
-const EnvSchema = Schema.Struct({
-  CF_API_TOKEN: Schema.NonEmptyString,
-  CF_ZONE_ID: Schema.NonEmptyString,
-  CF_RECORD_NAME: Schema.NonEmptyString,
-});
-
 const main = Effect.gen(function* () {
-  const env = yield* Schema.decodeUnknown(EnvSchema, { errors: 'all' })({
-    CF_API_TOKEN: process.env.CF_API_TOKEN,
-    CF_ZONE_ID: process.env.CF_ZONE_ID,
-    CF_RECORD_NAME: process.env.CF_RECORD_NAME,
-  });
-  const cloudflare = new Cloudflare({
-    apiToken: env.CF_API_TOKEN,
-  });
+  const cloudflare = new Cloudflare({ apiToken: process.env.CF_API_TOKEN }).dns.records;
 
   const records = yield* Effect.tryPromise({
-    catch: (cause) => new CloudflareAPIError({ operation: 'listRecords', cause }),
+    catch: (cause) => new CloudflareRecordListError({ cause }),
     try: () =>
-      cloudflare.dns.records.list({
-        zone_id: env.CF_ZONE_ID,
+      cloudflare.list({
+        zone_id: process.env.CF_ZONE_ID,
         type: 'A',
-        name: { exact: env.CF_RECORD_NAME },
+        name: { exact: process.env.CF_RECORD_NAME },
       }),
   });
 
@@ -54,12 +43,12 @@ const main = Effect.gen(function* () {
   );
 
   yield* Effect.tryPromise({
-    catch: (cause) => new CloudflareAPIError({ operation: 'editRecord', cause }),
+    catch: (cause) => new CloudflareRecordEditError({ cause }),
     try: () =>
-      cloudflare.dns.records.edit(records.result[0]?.id ?? '', {
-        zone_id: env.CF_ZONE_ID,
+      cloudflare.edit(records.result[0]?.id ?? '', {
+        zone_id: process.env.CF_ZONE_ID,
         type: 'A',
-        name: env.CF_RECORD_NAME,
+        name: process.env.CF_RECORD_NAME,
         content: ip,
         ttl: 1,
         proxied: false,
@@ -67,4 +56,7 @@ const main = Effect.gen(function* () {
   });
 });
 
-Bun.cron('0 * * * *', () => Effect.runPromise(main.pipe(Effect.provide(FetchHttpClient.layer))));
+const run = () => Effect.runPromise(main.pipe(Effect.provide(FetchHttpClient.layer)));
+
+await run();
+Bun.cron(process.env.CF_CRON, run);
