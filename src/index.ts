@@ -67,7 +67,7 @@ const main = Effect.gen(function* () {
 
   yield* runnableUpdater;
   yield* Effect.try({
-    try: () => Bun.cron(Bun.env.CF_CRON, () => Runtime.runPromise(effectRuntime,runnableUpdater)),
+    try: () => Bun.cron(Bun.env.CF_CRON, () => Runtime.runPromise(effectRuntime, runnableUpdater)),
     catch: (cause) => new CronRegistrationError({ cause }),
   });
 

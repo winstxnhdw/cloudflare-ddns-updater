@@ -2,7 +2,6 @@
 
 [![main.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/main.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/main.yml)
 [![release.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/release.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/release.yml)
-[![format.yml](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/format.yml/badge.svg)](https://github.com/winstxnhdw/cloudflare-ddns-updater/actions/workflows/format.yml)
 
 A simple dynamic DNS updater for Cloudflare. It updates a DNS record with your current public IP address.
 
