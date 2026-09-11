@@ -45,9 +45,6 @@ jobs:
       - name: Compile
         run: bun compile --target bun-${{ matrix.target }} --outfile dist/${{ env.BINARY_NAME }}-${{ matrix.target }}
 
-      - name: Remove source maps
-        run: rm --force dist/*.map
-
       - name: Upload artifact
         uses: actions/upload-artifact@v7.0.1
         with:

@@ -13,9 +13,7 @@ const compile = ({ outfile, target }: Command.Command.ParseConfig<typeof options
       try: () =>
         Bun.build({
           entrypoints: ['src/index.ts'],
-          minify: true,
           packages: 'bundle',
-          sourcemap: 'inline',
           target: 'bun',
         }),
     });
@@ -31,11 +29,10 @@ const compile = ({ outfile, target }: Command.Command.ParseConfig<typeof options
       catch: (cause) => new InstallerCompileError({ cause }),
       try: () =>
         Bun.build({
-          compile: { outfile, target: target as Bun.Build.CompileTarget },
-          define: { APPLICATION_SOURCE: applicationDefinition },
           entrypoints: ['scripts/build.ts'],
           minify: true,
-          sourcemap: 'inline',
+          define: { APPLICATION_SOURCE: applicationDefinition },
+          compile: { outfile, target: target as Bun.Build.CompileTarget },
         }),
     });
   });
@@ -50,4 +47,4 @@ const cli = Command.run(Command.make('compile', options, compile), {
   version: 'v1.0.0',
 });
 
-cli(Bun.argv).pipe(Effect.provide(BunContext.layer), BunRuntime.runMain);
+BunRuntime.runMain(cli(Bun.argv).pipe(Effect.provide(BunContext.layer)));

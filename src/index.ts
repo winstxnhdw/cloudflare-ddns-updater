@@ -1,4 +1,5 @@
 import { FetchHttpClient, HttpClient, HttpClientResponse } from '@effect/platform';
+import { BunRuntime } from '@effect/platform-bun';
 import Cloudflare from 'cloudflare';
 import { Data, Effect } from 'effect';
 
@@ -23,16 +24,20 @@ class IPAddressError extends Data.TaggedError('IPAddressError')<{
   readonly cause: unknown;
 }> {}
 
-const main = Effect.gen(function* () {
+class CronRegistrationError extends Data.TaggedError('CronRegistrationError')<{
+  readonly cause: unknown;
+}> {}
+
+const updater = Effect.gen(function* () {
   const cloudflare = new Cloudflare({ apiToken: Bun.env.CF_API_TOKEN }).dns.records;
 
   const records = yield* Effect.tryPromise({
     catch: (cause) => new CloudflareRecordListError({ cause }),
     try: () =>
       cloudflare.list({
+        name: { exact: Bun.env.CF_RECORD_NAME },
         zone_id: Bun.env.CF_ZONE_ID,
         type: 'A',
-        name: { exact: Bun.env.CF_RECORD_NAME },
       }),
   });
 
@@ -46,9 +51,9 @@ const main = Effect.gen(function* () {
     catch: (cause) => new CloudflareRecordEditError({ cause }),
     try: () =>
       cloudflare.edit(records.result[0]?.id ?? '', {
+        name: Bun.env.CF_RECORD_NAME,
         zone_id: Bun.env.CF_ZONE_ID,
         type: 'A',
-        name: Bun.env.CF_RECORD_NAME,
         content: ip,
         ttl: 1,
         proxied: false,
@@ -56,7 +61,16 @@ const main = Effect.gen(function* () {
   });
 });
 
-const run = () => Effect.runPromise(main.pipe(Effect.provide(FetchHttpClient.layer)));
+const main = Effect.gen(function* () {
+  const runnableUpdater = updater.pipe(Effect.provide(FetchHttpClient.layer));
 
-await run();
-Bun.cron(Bun.env.CF_CRON, run);
+  yield* runnableUpdater;
+  yield* Effect.try({
+    try: () => Bun.cron(Bun.env.CF_CRON, () => Effect.runPromise(runnableUpdater)),
+    catch: (cause) => new CronRegistrationError({ cause }),
+  });
+
+  yield* Effect.never;
+});
+
+BunRuntime.runMain(main);

@@ -117,7 +117,10 @@ const build = Effect.gen(function* () {
         files: { [applicationEntrypoint]: APPLICATION_SOURCE },
         minify: true,
         sourcemap: 'linked',
-        compile: { outfile: executablePath },
+        compile: {
+          outfile: executablePath,
+          windows: { hideConsole: true },
+        },
       }),
   });
 
@@ -130,4 +133,4 @@ const build = Effect.gen(function* () {
     .pipe(Effect.mapError((cause) => new ServiceWriteError({ cause })));
 });
 
-build.pipe(Effect.provide(BunContext.layer), BunRuntime.runMain);
+BunRuntime.runMain(build.pipe(Effect.provide(BunContext.layer)));
