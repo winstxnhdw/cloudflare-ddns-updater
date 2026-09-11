@@ -14,7 +14,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@effect/cli": "0.77.1",
-    "@effect/language-service": "^0.87.2",
+    "@effect/language-service": "0.87.2",
     "@types/bun": "latest"
   },
   "peerDependencies": {
