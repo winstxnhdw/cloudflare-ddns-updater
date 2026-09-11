@@ -14,10 +14,13 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@effect/cli": "0.77.1",
-    "@effect/language-service": "0.87.2",
+    "@effect/tsgo": "0.45.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "latest"
-  }
+  },
+  "trustedDependencies": [
+    "@parcel/watcher"
+  ]
 }
