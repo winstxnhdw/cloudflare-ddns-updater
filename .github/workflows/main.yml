@@ -22,3 +22,30 @@ jobs:
     with:
       disable-build: true
       disable-test: true
+
+  smoke:
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          show-progress: false
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install node dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Compile installer
+        run: bun compile
+
+      - name: Install updater
+        run: printf '%s\n' token zone example.com '0 * * * *' | dist/cloudflare-ddns-updater-installer
+
+      - name: Execute updater
+        run: timeout 5s ./cloudflare-ddns-updater || [ $? -ne 139 ]
