@@ -57,7 +57,7 @@ const serviceContents = (executablePath: string) =>
       `User=${username}`,
       `ExecStart=${absoluteExecutablePath}`,
       'Restart=on-failure',
-      'RestartSec=5s',
+      'RestartSec=30s',
       'NoNewPrivileges=yes',
       'PrivateDevices=yes',
       'PrivateTmp=yes',
