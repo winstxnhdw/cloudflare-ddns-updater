@@ -1,12 +1,12 @@
-import { Command, Options } from '@effect/cli';
-import { BunContext, BunRuntime } from '@effect/platform-bun';
+import { BunRuntime, BunServices } from '@effect/platform-bun';
 import { Data, Effect } from 'effect';
+import { Command, Flag } from 'effect/cli';
 
 class InstallerCompileError extends Data.TaggedError('InstallerCompileError')<{
   readonly cause: unknown;
 }> {}
 
-const compile = ({ outfile, target }: Command.Command.ParseConfig<typeof options>) =>
+const compile = ({ outfile, target }: Command.Command.Config.Infer<typeof options>) =>
   Effect.gen(function* () {
     const application = yield* Effect.tryPromise({
       catch: (cause) => new InstallerCompileError({ cause }),
@@ -38,13 +38,12 @@ const compile = ({ outfile, target }: Command.Command.ParseConfig<typeof options
   });
 
 const options = {
-  outfile: Options.text('outfile').pipe(Options.withDefault('dist/cloudflare-ddns-updater-installer')),
-  target: Options.text('target').pipe(Options.withDefault('bun-linux-x64')),
+  outfile: Flag.String('outfile').pipe(Flag.withDefault('dist/cloudflare-ddns-updater-installer')),
+  target: Flag.String('target').pipe(Flag.withDefault('bun-linux-x64')),
 };
 
 const cli = Command.run(Command.make('compile', options, compile), {
-  name: 'Installer CLI',
   version: 'v1.0.0',
 });
 
-BunRuntime.runMain(cli(Bun.argv).pipe(Effect.provide(BunContext.layer)));
+BunRuntime.runMain(cli.pipe(Effect.provide(BunServices.layer)));

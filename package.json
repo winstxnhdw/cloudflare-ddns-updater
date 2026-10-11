@@ -5,7 +5,6 @@
     "compile": "bun scripts/compile.ts"
   },
   "dependencies": {
-    "@effect/platform": "^0.97.2",
     "@effect/platform-bun": "4.0.2",
     "cloudflare": "^7.3.0",
     "effect": "^4.0.2",
@@ -13,14 +12,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@effect/cli": "0.77.2",
     "@effect/tsgo": "0.51.1",
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "latest"
-  },
-  "trustedDependencies": [
-    "@parcel/watcher"
-  ]
+  }
 }

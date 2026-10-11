@@ -1,7 +1,7 @@
-import { FetchHttpClient, HttpClient, HttpClientResponse } from '@effect/platform';
 import { BunRuntime } from '@effect/platform-bun';
 import Cloudflare from 'cloudflare';
-import { Data, Effect, Runtime } from 'effect';
+import { Data, Effect } from 'effect';
+import { FetchHttpClient, HttpClient, HttpClientResponse } from 'effect/http';
 
 declare module 'bun' {
   interface Env {
@@ -62,12 +62,11 @@ const updater = Effect.gen(function* () {
 });
 
 const main = Effect.gen(function* () {
-  const effectRuntime = yield* Effect.runtime<never>();
   const runnableUpdater = updater.pipe(Effect.provide(FetchHttpClient.layer));
 
   yield* runnableUpdater;
   yield* Effect.try({
-    try: () => Bun.cron(Bun.env.CF_CRON, () => Runtime.runPromise(effectRuntime, runnableUpdater)),
+    try: () => Bun.cron(Bun.env.CF_CRON, () => Effect.runPromise(runnableUpdater)),
     catch: (cause) => new CronRegistrationError({ cause }),
   });
 

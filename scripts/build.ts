@@ -1,8 +1,7 @@
 import { userInfo } from 'node:os';
-import { Prompt } from '@effect/cli';
-import { FileSystem, Path } from '@effect/platform';
-import { BunContext, BunRuntime } from '@effect/platform-bun';
-import { Data, Effect, Predicate, Redacted, Schema } from 'effect';
+import { BunRuntime, BunServices } from '@effect/platform-bun';
+import { Data, Effect, FileSystem, Path, Predicate, Redacted, Schema } from 'effect';
+import { Prompt } from 'effect/cli';
 
 declare const APPLICATION_SOURCE: string;
 
@@ -78,7 +77,7 @@ const serviceContents = (executablePath: string) =>
   });
 
 const required = (value: string) =>
-  Schema.decodeUnknown(Schema.NonEmptyString)(value).pipe(Effect.mapError(() => 'A value is required'));
+  Schema.decodeUnknownEffect(Schema.NonEmptyString)(value).pipe(Effect.mapError(() => 'A value is required'));
 
 const cron = (value: string) =>
   Effect.try({ try: () => Bun.cron.parse(value), catch: () => 'Invalid cron schedule' }).pipe(
@@ -92,10 +91,10 @@ const build = Effect.gen(function* () {
   const executablePath = 'cloudflare-ddns-updater';
 
   const input = yield* Prompt.all({
-    apiToken: Prompt.password({ message: 'Cloudflare API token', validate: required }),
-    zoneId: Prompt.text({ message: 'Cloudflare zone ID', validate: required }),
-    recordName: Prompt.text({ message: 'DNS record name', validate: required }),
-    cron: Prompt.text({ message: 'Cron schedule', default: '0 * * * *', validate: cron }),
+    apiToken: Prompt.Password({ message: 'Cloudflare API token', validate: required }),
+    zoneId: Prompt.String({ message: 'Cloudflare zone ID', validate: required }),
+    recordName: Prompt.String({ message: 'DNS record name', validate: required }),
+    cron: Prompt.String({ message: 'Cron schedule', default: '0 * * * *', validate: cron }),
   });
 
   const define = yield* Effect.try({
@@ -133,4 +132,4 @@ const build = Effect.gen(function* () {
     .pipe(Effect.mapError((cause) => new ServiceWriteError({ cause })));
 });
 
-BunRuntime.runMain(build.pipe(Effect.provide(BunContext.layer)));
+BunRuntime.runMain(build.pipe(Effect.provide(BunServices.layer)));

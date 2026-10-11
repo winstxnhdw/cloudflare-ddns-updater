@@ -45,7 +45,7 @@ jobs:
         run: bun compile
 
       - name: Install updater
-        run: printf '%s\n' token zone example.com '0 * * * *' | dist/cloudflare-ddns-updater-installer
+        run: printf '%s\n' token zone example.com '' | dist/cloudflare-ddns-updater-installer
 
       - name: Execute updater
         run: timeout 5s ./cloudflare-ddns-updater || [ $? -ne 139 ]
