@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
-    "@effect/tsgo": "0.68.1",
+    "@effect/tsgo": "0.69.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
