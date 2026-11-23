@@ -5,9 +5,9 @@
     "compile": "bun scripts/compile.ts"
   },
   "dependencies": {
-    "@effect/platform-bun": "4.1.4",
+    "@effect/platform-bun": "4.1.5",
     "cloudflare": "^7.3.0",
-    "effect": "^4.1.4",
+    "effect": "^4.1.5",
     "tslib": "^2.9.1"
   },
   "devDependencies": {
