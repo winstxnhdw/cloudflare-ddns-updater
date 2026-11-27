@@ -11,7 +11,7 @@
     "tslib": "^2.9.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
+    "@biomejs/biome": "2.6.9",
     "@effect/tsgo": "0.73.4",
     "@types/bun": "latest"
   },
